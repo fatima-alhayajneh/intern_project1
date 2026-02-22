@@ -1,4 +1,4 @@
-from models import * # Conflicting line for Task 4
+# This is a line from MAIN branch
 def main():
     try:
         name = input("Enter name: ")
