@@ -1,4 +1,4 @@
-from models import Employee, Manager
+print("This is the LAB version")
 def main():
     try:
         name = input("Enter name: ")
