@@ -1,4 +1,4 @@
-from models import Employee, Manager
+print("Hello from Database Branch")
 
 def main():
     try:
