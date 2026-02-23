@@ -1,4 +1,4 @@
-print("This is the MAIN version")
+from models import Employee, Manager
 def main():
     try:
         name = input("Enter name: ")
