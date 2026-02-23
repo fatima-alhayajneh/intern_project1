@@ -1,4 +1,4 @@
-# This is a line from MAIN branch
+from models import Employee, Manager
 def main():
     try:
         name = input("Enter name: ")
@@ -16,3 +16,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
