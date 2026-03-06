@@ -1,39 +1,45 @@
-import sqlite3
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime
+from sqlalchemy.orm import relationship
+from datetime import datetime
+from .database import Base
 
-class Employee:
-    def __init__(self, name, employee_id, salary):
-        self.name = name
-        self.employee_id = employee_id
-        self.salary = salary
+class Category(Base):
+    __tablename__ = "categories"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, unique=True)
+    products = relationship("Product", back_populates="category")
 
-    def display_info(self):
-        return f"ID: {self.employee_id}, Name: {self.name}, Salary: {self.salary}"
+class Product(Base):
+    __tablename__ = "products"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String)
+    description = Column(String)
+    price = Column(Float)
+    stock_quantity = Column(Integer)
+    category_id = Column(Integer, ForeignKey("categories.id"))
+    category = relationship("Category", back_populates="products")
 
-    def save_to_db(self):
-        conn = sqlite3.connect('company.db')
-        cursor = conn.cursor()
-        
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS employees (
-                id INTEGER PRIMARY KEY,
-                name TEXT,
-                role TEXT,
-                salary REAL
-            )
-        ''')
-        
-        cursor.execute("INSERT INTO employees (id, name, role, salary) VALUES (?, ?, ?, ?)", 
-                       (self.employee_id, self.name, "Employee", self.salary))
-        
-        conn.commit()
-        conn.close()
-        print(f"Employee {self.name} saved to database successfully!")
+class Order(Base):
+    __tablename__ = "orders"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer)
+    total_price = Column(Float)
+    status = Column(String, default="PENDING")
+    created_at = Column(DateTime, default=datetime.utcnow)
+    items = relationship("OrderItem", back_populates="order")
 
-class Manager(Employee):
-    def __init__(self, name, employee_id, salary, department):
-        super().__init__(name, employee_id, salary)
-        self.department = department
+class OrderItem(Base):
+    __tablename__ = "order_items"
+    id = Column(Integer, primary_key=True, index=True)
+    order_id = Column(Integer, ForeignKey("orders.id"))
+    product_id = Column(Integer, ForeignKey("products.id"))
+    quantity = Column(Integer)
+    price_at_purchase = Column(Float)
+    order = relationship("Order", back_populates="items")
 
-    def display_info(self):
-        base_info = super().display_info()
-        return f"{base_info}, Department: {self.department}"
+class InventoryLog(Base):
+    __tablename__ = "inventory_logs"
+    id = Column(Integer, primary_key=True, index=True)
+    product_id = Column(Integer, ForeignKey("products.id"))
+    change_amount = Column(Integer)
+    reason = Column(String)
