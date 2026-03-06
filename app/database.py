@@ -6,8 +6,8 @@ from dotenv import load_dotenv
 
 load_dotenv(dotenv_path="../.env")
 
-DB_NAME = os.getenv("DB_NAME")
-SQLALCHEMY_DATABASE_URL = f"sqlite:///./{DB_NAME}"
+#DB_NAME = os.getenv("DB_NAME")
+SQLALCHEMY_DATABASE_URL = f"sqlite:///./ecommerce.db"
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
