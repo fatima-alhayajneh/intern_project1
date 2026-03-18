@@ -9,6 +9,17 @@ class Category(Base):
     name = Column(String, unique=True)
     products = relationship("Product", back_populates="category")
 
+class User(Base):
+    __tablename__ = "users"
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, index=True)
+    email = Column(String, unique=True, index=True)
+    hashed_password = Column(String)
+    role = Column(String, default="customer")
+    loyalty_points = Column(Integer, default=0)
+    products = relationship("Product", back_populates="owner")
+    orders = relationship("Order", back_populates="user")
+
 class Product(Base):
     __tablename__ = "products"
     id = Column(Integer, primary_key=True, index=True)
@@ -17,16 +28,19 @@ class Product(Base):
     price = Column(Float)
     stock_quantity = Column(Integer)
     category_id = Column(Integer, ForeignKey("categories.id"))
+    vendor_id = Column(Integer, ForeignKey("users.id"))
     category = relationship("Category", back_populates="products")
+    owner = relationship("User", back_populates="products")
 
 class Order(Base):
     __tablename__ = "orders"
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer)
+    user_id = Column(Integer, ForeignKey("users.id"))
     total_price = Column(Float)
     status = Column(String, default="PENDING")
     created_at = Column(DateTime, default=datetime.utcnow)
     items = relationship("OrderItem", back_populates="order")
+    user = relationship("User", back_populates="orders")
 
 class OrderItem(Base):
     __tablename__ = "order_items"
@@ -36,6 +50,12 @@ class OrderItem(Base):
     quantity = Column(Integer)
     price_at_purchase = Column(Float)
     order = relationship("Order", back_populates="items")
+
+class Bundle(Base):
+    __tablename__ = "bundles"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String)
+    discount_percentage = Column(Float, default=10.0)
 
 class InventoryLog(Base):
     __tablename__ = "inventory_logs"
