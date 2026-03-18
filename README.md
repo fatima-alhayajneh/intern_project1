@@ -1,4 +1,4 @@
-Task 9: Quick Guide
+Task 8: Quick Guide
 
     Update: Pull the latest changes using git pull origin main.
 
@@ -6,8 +6,13 @@ Task 9: Quick Guide
 
     Test: Access the API interface at http://127.0.0.1:8000/docs.
 
-    Business Logic:
+   ### Task 9: Core Logic Updates
+* **Scarcity Pricing:** +50% markup if Stock = 1.
+* **VAT:** 16% tax applied on the final price.
+* **Loyalty Points:** Points = Total Order Value.
+* **Inventory:** Automatic stock decrement per order.
 
-        Tax: Automatic 16% tax calculation on every order.
-
-        Stock: Automated inventory deduction and prevention of over-ordering (400 Bad Request).
+### Test Case Example:
+* **Base Price:** 100 JOD
+* **After Markup (1.5x):** 150 JOD
+* **Final with VAT (1.16x):** 174 JOD
