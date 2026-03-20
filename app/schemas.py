@@ -44,30 +44,17 @@ class ProductResponse(ProductBase):
     class Config:
         from_attributes = True
 
-class OrderItemBase(BaseModel):
+class OrderItemCreate(BaseModel):
     product_id: int
     quantity: int
 
 class OrderCreate(BaseModel):
-    product_id: int
-    quantity: int
+    items: List[OrderItemCreate]
 
 class OrderResponse(BaseModel):
     id: int
     total_price: float
     status: str
+    math_breakdown: Optional[dict] = None
     class Config:
         from_attributes = True
-
-class BundleResponse(BaseModel):
-    id: int
-    name: str
-    discount_percentage: float
-    products: List[ProductResponse]
-    class Config:
-        from_attributes = True
-
-class BundleCreate(BaseModel):
-    name: str
-    discount_percentage: float
-    product_ids: List[int]
