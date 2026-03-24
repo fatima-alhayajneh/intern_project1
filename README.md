@@ -1,18 +1,22 @@
-Task 8: Quick Guide
+Task 11: Quick Guide
+Product Pagination
 
-    Update: Pull the latest changes using git pull origin main.
+The API now supports pagination to handle large numbers of products efficiently.
 
-    Run: Start the server with uvicorn app.main:app --reload.
+How to use:
 
-    Test: Access the API interface at http://127.0.0.1:8000/docs.
+    limit: The number of products to return (default is 10).
 
-   ### Task 9: Core Logic Updates
-* **Scarcity Pricing:** +50% markup if Stock = 1.
-* **VAT:** 16% tax applied on the final price.
-* **Loyalty Points:** Points = Total Order Value.
-* **Inventory:** Automatic stock decrement per order.
+    offset: The starting point, used to skip a specific number of products (default is 0).
 
-### Test Case Example:
-* **Base Price:** 100 JOD
-* **After Markup (1.5x):** 150 JOD
-* **Final with VAT (1.16x):** 174 JOD
+Examples:
+
+    To get the first 10 products: GET /products
+
+    To get 5 products starting from the 11th one: GET /products?limit=5&offset=10
+
+Soft Delete
+
+Products marked as deleted (is_deleted = True) will no longer appear in the list.
+
+Benefit: This improves system performance and reduces the load on the server and browser, while keeping the data safe in the database.
