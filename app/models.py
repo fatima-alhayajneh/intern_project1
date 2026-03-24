@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, Boolean
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from .database import Base
@@ -27,6 +27,7 @@ class Product(Base):
     description = Column(String)
     price = Column(Float)
     stock_quantity = Column(Integer)
+    is_deleted = Column(Boolean, default=False)
     category_id = Column(Integer, ForeignKey("categories.id"))
     vendor_id = Column(Integer, ForeignKey("users.id"))
     category = relationship("Category", back_populates="products")
