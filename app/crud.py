@@ -20,11 +20,14 @@ def create_user(db: Session, user: schemas.UserCreate):
 def create_order(db: Session, order_data: schemas.OrderCreate, current_user_id: int):
     new_order = models.Order(user_id=current_user_id, status="PAID", created_at=datetime.utcnow())
     db.add(new_order)
-    db.flush() 
+    db.flush()
 
     subtotal = 0
     for item in order_data.items:
-        product = db.query(models.Product).filter(models.Product.id == item.product_id).first()
+        product = db.query(models.Product).filter(
+            models.Product.id == item.product_id,
+            models.Product.is_deleted == False
+        ).first()
         if not product or product.stock_quantity < item.quantity:
             return None
 
@@ -79,24 +82,40 @@ def create_product(db: Session, product: schemas.ProductCreate):
         price=product.price,
         stock_quantity=product.stock_quantity,
         category_id=product.category_id,
-        vendor_id=product.vendor_id
+        vendor_id=product.vendor_id,
+        is_deleted=False
     )
     db.add(db_product)
     db.commit()
     db.refresh(db_product)
     return db_product
 
-def get_products(db: Session, min_price=None, max_price=None, category_name=None, in_stock=None):
-    query = db.query(models.Product)
-    if min_price: query = query.filter(models.Product.price >= min_price)
-    if max_price: query = query.filter(models.Product.price <= max_price)
-    if category_name: query = query.join(models.Category).filter(models.Category.name == category_name)
-    if in_stock: query = query.filter(models.Product.stock_quantity > 0)
-    products = query.all()
+def get_products(db: Session, min_price=None, max_price=None, category_name=None, in_stock=None, limit: int = 10, offset: int = 0):
+    query = db.query(models.Product).filter(models.Product.is_deleted == False)
+    if min_price:
+        query = query.filter(models.Product.price >= min_price)
+    if max_price:
+        query = query.filter(models.Product.price <= max_price)
+    if category_name:
+        query = query.join(models.Category).filter(models.Category.name == category_name)
+    if in_stock:
+        query = query.filter(models.Product.stock_quantity > 0)
+    
+    products = query.offset(offset).limit(limit).all()
     for p in products:
-        if 1 < p.stock_quantity <= 10: p.price = round(p.price * 1.15, 2)
-        elif p.stock_quantity == 1: p.price = round(p.price * 1.50, 2)
+        if 1 < p.stock_quantity <= 10:
+            p.price = round(p.price * 1.15, 2)
+        elif p.stock_quantity == 1:
+            p.price = round(p.price * 1.50, 2)
     return products
+
+def delete_product(db: Session, product_id: int):
+    product = db.query(models.Product).filter(models.Product.id == product_id).first()
+    if product:
+        product.is_deleted = True
+        db.commit()
+        return True
+    return False
 
 def create_category(db: Session, category: schemas.CategoryBase):
     db_cat = models.Category(name=category.name)
@@ -104,3 +123,30 @@ def create_category(db: Session, category: schemas.CategoryBase):
     db.commit()
     db.refresh(db_cat)
     return db_cat
+
+def get_admin_dashboard(db: Session):
+    top_products_raw = db.query(
+        models.Product.name,
+        func.sum(models.OrderItem.quantity).label("total_sold")
+    ).join(models.OrderItem)\
+     .group_by(models.Product.id)\
+     .order_by(func.sum(models.OrderItem.quantity).desc())\
+     .limit(3).all()
+
+    top_products = [{"name": p[0], "total_sold": p[1]} for p in top_products_raw]
+
+    current_month = datetime.utcnow().month
+    total_revenue = db.query(func.sum(models.Order.total_price)).filter(
+        func.extract('month', models.Order.created_at) == current_month
+    ).scalar() or 0
+
+    low_stock_count = db.query(func.count(models.Product.id)).filter(
+        models.Product.stock_quantity < 5,
+        models.Product.is_deleted == False
+    ).scalar()
+
+    return {
+        "top_selling_products": top_products,
+        "monthly_revenue": total_revenue,
+        "low_stock_items": low_stock_count
+    }
