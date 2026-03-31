@@ -1,39 +1,31 @@
+/* --- التنسيقات العامة للموقع --- */
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: #f4f7f6;
     padding: 20px;
+    margin: 0;
 }
 
 .container {
-    max-width: 900px;
+    max-width: 950px;
     margin: auto;
     background: white;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
 }
 
 h1 {
-    color: #333;
+    color: #2c3e50;
     text-align: center;
+    margin-bottom: 30px;
 }
 
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
-}
-
-th {
-    background-color: #2c3e50;
-    color: white;
-    padding: 12px;
-    text-align: left;
-}
-
-td {
-    padding: 10px;
-    border-bottom: 1px solid #ddd;
+/* --- أزرار التحكم --- */
+.controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
 }
 
 .btn-refresh {
@@ -41,15 +33,56 @@ td {
     color: white;
     padding: 10px 20px;
     border: none;
-    border-radius: 4px;
+    border-radius: 6px;
     cursor: pointer;
-    margin-bottom: 10px;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+.btn-add {
+    background-color: #2c3e50;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+.btn-refresh:hover, .btn-add:hover {
+    opacity: 0.85;
+    transform: translateY(-1px);
+}
+
+/* --- جدول المنتجات --- */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+th {
+    background-color: #2c3e50;
+    color: white;
+    padding: 15px;
+    text-align: left;
+    border-radius: 4px 4px 0 0;
+}
+
+td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #eee;
+}
+
+tr:hover {
+    background-color: #f9f9f9;
 }
 
 .btn-restock {
     background-color: #27ae60;
     color: white;
-    padding: 6px 12px;
+    padding: 6px 15px;
     border: none;
     border-radius: 4px;
     cursor: pointer;
@@ -63,4 +96,103 @@ td {
 .low-stock {
     color: #e74c3c;
     font-weight: bold;
+    background-color: #fdf2f2;
+    padding: 4px;
+    border-radius: 4px;
+}
+
+/* --- تنسيقات الـ Modal (النافذة المنبثقة) --- */
+.modal {
+    display: none; /* مخفي افتراضياً */
+    position: fixed; 
+    z-index: 9999; 
+    left: 0;
+    top: 0;
+    width: 100%; 
+    height: 100%; 
+    background-color: rgba(0,0,0,0.5); /* تعتيم الخلفية */
+    backdrop-filter: blur(3px); /* تأثير ضبابي للخلفية */
+}
+
+.modal-content {
+    background-color: #fff;
+    margin: 8% auto; 
+    padding: 30px;
+    border-radius: 15px;
+    width: 450px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    position: relative;
+    animation: fadeInScale 0.3s ease-out;
+}
+
+@keyframes fadeInScale {
+    from { transform: scale(0.9); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.close-btn {
+    position: absolute;
+    right: 25px;
+    top: 20px;
+    font-size: 28px;
+    cursor: pointer;
+    color: #95a5a6;
+}
+
+.close-btn:hover { color: #333; }
+
+/* --- تنسيق الفورم والتحقق (Validation UI) --- */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #34495e;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #ecf0f1;
+    border-radius: 8px;
+    box-sizing: border-box;
+    font-size: 14px;
+    transition: border-color 0.3s;
+}
+
+.form-group input:focus {
+    border-color: #3498db;
+    outline: none;
+}
+
+.error-msg {
+    color: #e74c3c;
+    font-size: 12px;
+    margin-top: 5px;
+    display: none; /* تظهر فقط عند الخطأ بالجافا سكريبت */
+}
+
+.btn-save {
+    width: 100%;
+    padding: 14px;
+    background-color: #27ae60;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.btn-save:disabled {
+    background-color: #bdc3c7;
+    cursor: not-allowed;
+}
+
+.btn-save:hover:not(:disabled) {
+    background-color: #2ecc71;
 }
