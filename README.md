@@ -1,19 +1,23 @@
-Project Name: Product Management System (admin dashboard)
+Admin Dashboard Project Overview
 
-Key Features:
+A professional, interactive management console built to handle product data efficiently. This project focuses on high UI/UX standards, real-time feedback, and clean code architecture.
 
-    Data Display: An interactive table that fetches and displays products directly from the database.
+# Key Features (Task 17)
 
-    Low Stock Alert: Automatically highlights the stock quantity in red if it falls below 10 units.
+    Interactive Modals: I implemented a well-organized pop-up window for adding products, with an instant data validation feature; meaning negative prices cannot be added, and fields cannot be left blank.
 
-    Restock Functionality: A dedicated "Restock" button that increases the product quantity by 10 in the database with one click.
+    Smart Search and Filtering: The search bar works instantly and sorts results by relevance (Starts-with priority), with the option to filter by category.
 
-    Instant Refresh: A data refresh button to sync the table without needing to reload the entire page.
+    Bulk Actions: Admins can now select a group of products using checkboxes and delete them all with a single click using the "Delete Selected" button, which appears dynamically.
 
-Tech Stack:
+    Visual Feedback: I replaced annoying standard alerts with custom Toasts (small messages in the corner) and added Pulse animations during data loading for a smoother user experience.
 
-    Backend: FastAPI (Python).
+    Clean Architecture: I separated the API logic into api.js and the UI logic into script.js to ensure the project is professional and easy to maintain.
 
-    Frontend: HTML5, CSS3, JavaScript 
+# Tech Stack
 
-    Database: SQLite
+    Backend: FastAPI (Python)
+
+    Frontend: HTML5, CSS3 (Component-based), JavaScript
+
+ 
