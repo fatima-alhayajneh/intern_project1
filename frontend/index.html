@@ -3,18 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard</title>
+    <title>Admin Product Dashboard</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
+    <div id="loginSection" class="container" style="margin-bottom: 20px; text-align: center;">
+        <h2> Admin Login</h2>
+        <div class="controls" style="justify-content: center; flex-wrap: wrap;">
+            <input type="text" id="username" placeholder="Username" style="padding: 10px; border-radius: 5px; border: 1px solid #ddd;">
+            <input type="password" id="password" placeholder="Password" style="padding: 10px; border-radius: 5px; border: 1px solid #ddd;">
+            <button onclick="handleLogin()" class="btn-refresh">Login</button>
+        </div>
+        <p id="loginStatus" style="font-weight: bold; margin-top: 10px;"></p>
+    </div>
+
     <div class="container">
         <h1>Admin Product Dashboard</h1>
         
-        <button id="refreshBtn" class="btn-refresh">Refresh Data</button>
+        <div class="controls">
+            <button id="refreshBtn" class="btn-refresh">Refresh Data</button>
+            <button id="openModalBtn" class="btn-add">Add New Product</button>
+            <button id="bulkDeleteBtn" onclick="handleBulkDelete()" style="display:none; background-color: #ff4d4d; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold;">
+                Delete Selected (0)
+            </button>
+        </div>
+
+        <div class="search-container" style="margin: 15px 0; display: flex; gap: 10px;">
+            <input type="text" id="searchInput" placeholder="🔍 Search products by name..." 
+                   style="flex: 2; padding: 12px; border-radius: 8px; border: 1px solid #ddd; font-size: 16px;">
+            
+            <select id="categoryFilter" style="flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #ddd;">
+                <option value="all">All Categories</option>
+                <option value="1">Electronics</option>
+                <option value="2">Other</option>
+            </select>
+        </div>
 
         <table>
             <thead>
                 <tr>
+                    <th><input type="checkbox" id="selectAll" onclick="toggleSelectAll()"></th>
                     <th>ID</th>
                     <th>Name</th>
                     <th>Price</th>
@@ -23,10 +52,39 @@
                 </tr>
             </thead>
             <tbody id="productTableBody">
-            </tbody>
+                </tbody>
         </table>
     </div>
 
+    <div id="productModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" id="closeModal">&times;</span>
+            <h2>Add New Product</h2>
+            <hr>
+            <form id="productForm">
+                <div class="form-group">
+                    <label for="productName">Product Name:</label>
+                    <input type="text" id="productName" placeholder="Enter name" required>
+                    <small id="nameError" style="color: red; display: none;">Product name is required!</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="productPrice">Price ($):</label>
+                    <input type="number" id="productPrice" step="0.01" placeholder="0.00" required>
+                    <small id="priceError" style="color: red; display: none;">Price cannot be negative!</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="productStock">Stock Quantity:</label>
+                    <input type="number" id="productStock" placeholder="0" required>
+                </div>
+
+                <button type="submit" id="saveProductBtn" class="btn-save">Save Product</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="api.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
