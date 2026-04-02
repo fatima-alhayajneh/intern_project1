@@ -19,18 +19,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.middleware("http")
-async def add_process_time_header(request: Request, call_next):
-    start_time = time.time()
-    try:
-        response = await call_next(request)
-        process_time = time.time() - start_time
-        response.headers["X-Process-Time"] = str(process_time)
-        return response
-    except Exception as e:
-        print(f"ERROR: {e}")
-        raise e
-
 def get_db():
     db = SessionLocal()
     try:
@@ -48,7 +36,12 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db:
     if not user:
         raise HTTPException(status_code=401, detail="Incorrect username or password")
     access_token = auth.create_access_token(data={"sub": user.username})
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {
+        "access_token": access_token, 
+        "token_type": "bearer",
+        "role": user.role,
+        "username": user.username
+    }
 
 @app.get("/products/", response_model=List[schemas.ProductResponse])
 def read_products(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
@@ -78,15 +71,7 @@ def get_admin_dashboard(db: Session = Depends(get_db), current_user: models.User
     top_selling = crud.get_top_selling_products(db)
     monthly_rev = crud.get_monthly_revenue(db)
     low_stock = crud.get_low_stock_items(db)
-    formatted_top_products = []
-    if top_selling:
-        for item in top_selling:
-            try:
-                p_obj = item[0]
-                qty = item[1]
-                formatted_top_products.append({"name": str(p_obj.name), "sold": int(qty)})
-            except:
-                continue
+    formatted_top_products = [{"name": str(item[0].name), "sold": int(item[1])} for item in top_selling] if top_selling else []
     return {
         "top_selling_products": formatted_top_products,
         "monthly_revenue": float(monthly_rev) if monthly_rev else 0.0,
@@ -94,7 +79,9 @@ def get_admin_dashboard(db: Session = Depends(get_db), current_user: models.User
     }
 
 @app.patch("/products/{product_id}/restock")
-def restock_product(product_id: int, db: Session = Depends(get_db)):
+def restock_product(product_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Admin access only")
     product = db.query(models.Product).filter(models.Product.id == product_id).first()
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
