@@ -1,5 +1,4 @@
 const API_URL = "http://127.0.0.1:8000";
-
 async function loginApi(username, password) {
     const formData = new URLSearchParams();
     formData.append('username', username);
@@ -14,7 +13,10 @@ async function loginApi(username, password) {
 
         if (response.ok) {
             const data = await response.json();
+            
             localStorage.setItem('adminToken', data.access_token);
+            localStorage.setItem('userRole', data.role); 
+            localStorage.setItem('userName', data.username);
             return true;
         }
         return false;
@@ -31,7 +33,6 @@ async function fetchProductsApi() {
 
 async function addProductApi(productData) {
     const token = localStorage.getItem('adminToken');
-
     return await fetch(`${API_URL}/products/`, {
         method: 'POST',
         headers: {
@@ -44,21 +45,18 @@ async function addProductApi(productData) {
 
 async function deleteProductApi(id) {
     const token = localStorage.getItem("adminToken");
-
     const response = await fetch(`${API_URL}/products/${id}`, {
         method: "DELETE",
-        headers: {
-            "Authorization": `Bearer ${token}`
-        }
+        headers: { "Authorization": `Bearer ${token}` }
     });
-
     return response.ok;
 }
 
 async function restockProductApi(id) {
+    const token = localStorage.getItem("adminToken");
     const response = await fetch(`${API_URL}/products/${id}/restock`, {
-        method: 'PATCH'
+        method: 'PATCH',
+        headers: { "Authorization": `Bearer ${token}` }
     });
-
     return response.ok;
 }

@@ -9,7 +9,7 @@
 <body>
 
     <div id="loginSection" class="container" style="margin-bottom: 20px; text-align: center;">
-        <h2> Admin Login</h2>
+        <h2>Admin Login</h2>
         <div class="controls" style="justify-content: center; flex-wrap: wrap;">
             <input type="text" id="username" placeholder="Username" style="padding: 10px; border-radius: 5px; border: 1px solid #ddd;">
             <input type="password" id="password" placeholder="Password" style="padding: 10px; border-radius: 5px; border: 1px solid #ddd;">
@@ -18,25 +18,27 @@
         <p id="loginStatus" style="font-weight: bold; margin-top: 10px;"></p>
     </div>
 
-    <div class="container">
+    <div id="dashboardSection" class="container" style="display: none;">
         <h1>Admin Product Dashboard</h1>
         
         <div class="controls">
-            <button id="refreshBtn" class="btn-refresh">Refresh Data</button>
-            <button id="openModalBtn" class="btn-add">Add New Product</button>
+            <button id="refreshBtn" class="btn-refresh" onclick="loadDashboardData()">Refresh Data</button>
+            <button id="openModalBtn" class="btn-add" onclick="openModal()">Add New Product</button>
             <button id="bulkDeleteBtn" onclick="handleBulkDelete()" style="display:none; background-color: #ff4d4d; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold;">
                 Delete Selected (0)
             </button>
+            <button onclick="handleLogout()" style="background:#95a5a6; color:white; border:none; padding:10px; border-radius:5px; cursor:pointer;">Logout</button>
         </div>
 
         <div class="search-container" style="margin: 15px 0; display: flex; gap: 10px;">
             <input type="text" id="searchInput" placeholder="🔍 Search products by name..." 
                    style="flex: 2; padding: 12px; border-radius: 8px; border: 1px solid #ddd; font-size: 16px;">
             
-            <select id="categoryFilter" style="flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #ddd;">
+            <select id="categoryFilter" onchange="handleCategoryFilter(event)" style="flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #ddd;">
                 <option value="all">All Categories</option>
                 <option value="1">Electronics</option>
-                <option value="2">Other</option>
+                <option value="2">Fashion</option>
+                <option value="3">Groceries</option>
             </select>
         </div>
 
@@ -51,14 +53,13 @@
                     <th>Actions</th>
                 </tr>
             </thead>
-            <tbody id="productTableBody">
-                </tbody>
+            <tbody id="productTableBody"></tbody>
         </table>
     </div>
 
     <div id="productModal" class="modal">
         <div class="modal-content">
-            <span class="close-btn" id="closeModal">&times;</span>
+            <span class="close-btn" id="closeModal" onclick="closeModal()">&times;</span>
             <h2>Add New Product</h2>
             <hr>
             <form id="productForm">
@@ -66,6 +67,15 @@
                     <label for="productName">Product Name:</label>
                     <input type="text" id="productName" placeholder="Enter name" required>
                     <small id="nameError" style="color: red; display: none;">Product name is required!</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="productCategory">Category:</label>
+                    <select id="productCategory" required style="width: 100%; padding: 10px; margin-top: 5px; border-radius: 5px; border: 1px solid #ddd;">
+                        <option value="1">Electronics</option>
+                        <option value="2">Fashion</option>
+                        <option value="3">Groceries</option>
+                    </select>
                 </div>
 
                 <div class="form-group">

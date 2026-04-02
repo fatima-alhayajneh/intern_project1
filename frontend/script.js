@@ -1,19 +1,17 @@
 let allProducts = [];
 
 document.addEventListener('DOMContentLoaded', () => {
-    loadDashboardData();
+    const role = localStorage.getItem("userRole");
+    const token = localStorage.getItem("adminToken");
 
-    const refreshBtn = document.getElementById("refreshBtn");
-    if (refreshBtn) refreshBtn.onclick = loadDashboardData;
+    if (role === "admin" && token) {
+        showAdminView();
+    }
 
     const searchInput = document.getElementById("searchInput");
     if (searchInput) searchInput.addEventListener("input", handleSearch);
-
-    const categoryFilter = document.getElementById("categoryFilter");
-    if (categoryFilter) categoryFilter.addEventListener("change", handleCategoryFilter);
 });
 
-// --- Toast Notification System (NEW) ---
 function showToast(message, type = 'success') {
     const toast = document.createElement("div");
     toast.innerText = message;
@@ -31,44 +29,52 @@ function showToast(message, type = 'success') {
     }, 3000);
 }
 
-// --- Login Logic ---
-async function handleLogin() {
+function showAdminView() {
+    document.getElementById("loginSection").style.display = "none";
+    document.getElementById("dashboardSection").style.display = "block";
+    loadDashboardData();
+}
+
+window.handleLogin = async function() {
     const user = document.getElementById("username").value;
     const pass = document.getElementById("password").value;
     const status = document.getElementById("loginStatus");
 
-    status.innerText = "Attempting login...";
+    if (status) status.innerText = "Attempting login...";
     const success = await loginApi(user, pass);
     
     if (success) {
-        showToast("Logged in successfully!");
-        status.innerText = "";
-        document.getElementById("loginSection").style.display = "none";
+        const role = localStorage.getItem("userRole");
+        if (role === "admin") {
+            showToast("Logged in successfully!");
+            showAdminView();
+        } else {
+            localStorage.clear();
+            showToast("Access Denied: Admin Only", "error");
+        }
     } else {
-        status.innerText = "Login failed!";
-        status.style.color = "red";
+        if (status) status.innerText = "Login failed!";
         showToast("Check your credentials", "error");
     }
-}
+};
 
-// --- Data Loading & Rendering ---
+window.handleLogout = function() {
+    localStorage.clear();
+    window.location.reload();
+};
+
 async function loadDashboardData() {
     const tableBody = document.getElementById("productTableBody");
     const refreshBtn = document.getElementById("refreshBtn");
 
     if (refreshBtn) refreshBtn.innerText = "Connecting...";
-    
-    // إظهار شكل التحميل (Spinner) داخل الجدول
-    tableBody.innerHTML = `
-        <tr><td colspan='6' style="padding: 40px;">
-            <div class="loader-text">Fetching latest data...</div>
-        </td></tr>`;
+    tableBody.innerHTML = `<tr><td colspan='6' style="padding: 40px; text-align: center;">Fetching latest data...</td></tr>`;
 
     try {
         allProducts = await fetchProductsApi();
         renderTable(allProducts);
     } catch (error) {
-        tableBody.innerHTML = "<tr><td colspan='6' style='color:red'>Server Connection Error!</td></tr>";
+        tableBody.innerHTML = "<tr><td colspan='6' style='color:red; text-align: center;'>Server Connection Error!</td></tr>";
         showToast("Could not reach server", "error");
     } finally {
         if (refreshBtn) refreshBtn.innerText = "Refresh Data";
@@ -78,15 +84,15 @@ async function loadDashboardData() {
 function renderTable(products) {
     const tableBody = document.getElementById("productTableBody");
     tableBody.innerHTML = "";
-
-    if (products.length === 0) {
-        tableBody.innerHTML = "<tr><td colspan='6'>No products found matching criteria.</td></tr>";
+    
+    if (!products || products.length === 0) {
+        tableBody.innerHTML = "<tr><td colspan='6' style='text-align: center;'>No products found.</td></tr>";
         return;
     }
 
     products.forEach(product => {
         const row = document.createElement("tr");
-        const stockValue = product.stock_quantity ?? (product.stock || 0);
+        const stockValue = product.stock_quantity ?? 0;
         const stockClass = stockValue < 10 ? "low-stock" : "";
 
         row.innerHTML = `
@@ -105,87 +111,27 @@ function renderTable(products) {
     updateBulkDeleteButton();
 }
 
-// --- Search & Filtering ---
-function handleSearch(e) {
-    const term = e.target.value.toLowerCase();
-    
-    // 1. الفلترة: بنجيب كل اللي فيهم الحرف
-    let filtered = allProducts.filter(product => 
-        product.name.toLowerCase().includes(term)
-    );
-
-    // 2. الترتيب الذكي (السر هون):
-    filtered.sort((a, b) => {
-        const nameA = a.name.toLowerCase();
-        const nameB = b.name.toLowerCase();
-
-        const startsWithA = nameA.startsWith(term);
-        const startsWithB = nameB.startsWith(term);
-
-        // إذا A بتبدأ بالحرف و B لأ -> A تطلع فوق (-1)
-        if (startsWithA && !startsWithB) return -1;
-        // إذا B بتبدأ بالحرف و A لأ -> B تطلع فوق (1)
-        if (!startsWithA && startsWithB) return 1;
-
-        // إذا الاثنين ببدأوا بنفس الحرف أو الاثنين ما ببدأوا فيه، رتبيهم أبجدي عادي
-        return nameA.localeCompare(nameB);
-    });
-
-    renderTable(filtered);
-}
-
-function handleCategoryFilter(e) {
-    const categoryId = e.target.value;
-    if (categoryId === "all") {
-        renderTable(allProducts);
-    } else {
-        // الفلترة حسب category_id
-        const filtered = allProducts.filter(p => p.category_id == categoryId);
-        renderTable(filtered);
-    }
-}
-
-// --- Individual Actions ---
-async function handleRestock(id) {
-    const success = await restockProductApi(id);
-    if (success) {
-        showToast("Stock updated!");
-        loadDashboardData();
-    } else {
-        showToast("Update failed", "error");
-    }
-}
-
-window.handleDelete = async function(id) {
-    if (confirm("Permanently delete this item?")) {
-        const success = await deleteProductApi(id);
-        if (success) {
-            showToast("Item deleted");
-            loadDashboardData();
-        } else {
-            showToast("Delete operation failed", "error");
-        }
-    }
-};
-
-// --- Bulk Actions ---
-function toggleSelectAll() {
-    const selectAllCb = document.getElementById("selectAll");
+window.toggleSelectAll = function() {
+    const master = document.getElementById("selectAll");
     const checkboxes = document.querySelectorAll(".product-checkbox");
-    checkboxes.forEach(cb => cb.checked = selectAllCb.checked);
+    checkboxes.forEach(cb => cb.checked = master.checked);
     updateBulkDeleteButton();
 }
 
-function updateBulkDeleteButton() {
+window.updateBulkDeleteButton = function() {
     const selected = document.querySelectorAll(".product-checkbox:checked");
     const bulkBtn = document.getElementById("bulkDeleteBtn");
     if (bulkBtn) {
-        bulkBtn.style.display = selected.length > 0 ? "inline-block" : "none";
-        bulkBtn.innerText = `Delete Selected (${selected.length})`;
+        if (selected.length > 0) {
+            bulkBtn.style.display = "inline-block";
+            bulkBtn.innerText = `Delete Selected (${selected.length})`;
+        } else {
+            bulkBtn.style.display = "none";
+        }
     }
 }
 
-async function handleBulkDelete() {
+window.handleBulkDelete = async function() {
     const selected = document.querySelectorAll(".product-checkbox:checked");
     const ids = Array.from(selected).map(cb => cb.value);
 
@@ -193,61 +139,79 @@ async function handleBulkDelete() {
         for (let id of ids) {
             await deleteProductApi(id);
         }
-        showToast(`Batch delete completed (${ids.length} items)`);
+        showToast(`Batch delete completed`);
         document.getElementById("selectAll").checked = false;
         loadDashboardData();
     }
 }
 
-// --- Modal & Validation ---
-const modal = document.getElementById("productModal");
-const openModalBtn = document.getElementById("openModalBtn");
-const closeModalBtn = document.getElementById("closeModal");
-const productForm = document.getElementById("productForm");
-const nameInput = document.getElementById("productName");
-const priceInput = document.getElementById("productPrice");
-const saveBtn = document.getElementById("saveProductBtn");
+function handleSearch(e) {
+    const term = e.target.value.toLowerCase();
+    renderTable(allProducts.filter(p => p.name.toLowerCase().includes(term)));
+}
 
-openModalBtn.onclick = () => {
-    productForm.reset();
-    modal.style.display = "block";
-};
-closeModalBtn.onclick = () => modal.style.display = "none";
-
-window.onclick = (event) => {
-    if (event.target == modal) modal.style.display = "none";
+window.handleCategoryFilter = function(e) {
+    const catId = e.target.value;
+    const filtered = (catId === "all") ? allProducts : allProducts.filter(p => p.category_id == catId);
+    renderTable(filtered);
 };
 
-// Frontend Real-time Validation
-priceInput.oninput = () => {
-    const priceError = document.getElementById("priceError");
-    if (parseFloat(priceInput.value) < 0) {
-        saveBtn.disabled = true;
-        priceError.style.display = "block";
-    } else {
-        saveBtn.disabled = false;
-        priceError.style.display = "none";
-    }
-};
-
-productForm.onsubmit = async (e) => {
-    e.preventDefault();
-
-    const newProduct = {
-        name: nameInput.value,
-        description: "Admin Entry",
-        price: parseFloat(priceInput.value),
-        stock_quantity: parseInt(document.getElementById("productStock").value),
-        category_id: 1, vendor_id: 1
-    };
-
-    const response = await addProductApi(newProduct);
-    if (response.ok) {
-        showToast("Product added to catalog!");
-        modal.style.display = "none";
-        productForm.reset();
+window.handleRestock = async function(id) {
+    if (await restockProductApi(id)) {
+        showToast("Stock updated!");
         loadDashboardData();
-    } else {
-        showToast("Failed to save product", "error");
     }
 };
+
+window.handleDelete = async function(id) {
+    if (confirm("Permanently delete this item?")) {
+        if (await deleteProductApi(id)) {
+            showToast("Item deleted");
+            loadDashboardData();
+        }
+    }
+};
+
+window.openModal = () => document.getElementById("productModal").style.display = "block";
+window.closeModal = () => document.getElementById("productModal").style.display = "none";
+
+const priceInputEl = document.getElementById("productPrice");
+if(priceInputEl) {
+    priceInputEl.oninput = () => {
+        const priceError = document.getElementById("priceError");
+        const saveBtn = document.getElementById("saveProductBtn");
+        if (parseFloat(priceInputEl.value) < 0) {
+            saveBtn.disabled = true;
+            if(priceError) priceError.style.display = "block";
+        } else {
+            saveBtn.disabled = false;
+            if(priceError) priceError.style.display = "none";
+        }
+    };
+}
+
+const pForm = document.getElementById("productForm");
+if(pForm) {
+    pForm.onsubmit = async (e) => {
+        e.preventDefault();
+        const data = {
+            name: document.getElementById("productName").value,
+            description: "Admin added product",
+            price: parseFloat(document.getElementById("productPrice").value),
+            stock_quantity: parseInt(document.getElementById("productStock").value),
+            category_id: parseInt(document.getElementById("productCategory").value),
+            vendor_id: 1
+        };
+        const res = await addProductApi(data);
+        if (res && res.ok) {
+            showToast("Product saved! ✅");
+            closeModal();
+            pForm.reset();
+            loadDashboardData();
+        } else {
+            const error = await res.json();
+            console.error("Save Error:", error);
+            showToast("Save failed! Check fields", "error");
+        }
+    };
+}
